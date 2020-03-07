@@ -9,11 +9,11 @@ import song5 from "../../music/San Holo - Surface (feat. Caspian).mp3"
 import cover from "../../images/flowers.jpg"
 
 const songs = [
-    {id: 1, src: song1, name: "DROELOE - Sunburn", artist: "DROELOE"},
-    {id: 2, src: song2, name: "Anne Marie - Birthday", artist: "Anne Marie"},
-    {id: 3, src: song3, name: "Kehlani - Gangsta", artist: "Kehlani"},
-    {id: 4, src: song4, name: "Twenty one pilots - Heathens", artist: "Twenty one pilots"},
-    {id: 5, src: song5, name: "San Holo - Surface", artist: "San Holo"}
+    {id: 1, src: song1, name: "Sunburn", artist: "DROELOE", img: "https://images.unsplash.com/photo-1508726295872-0b87b9999406?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=564&q=80"},
+    {id: 2, src: song2, name: "Birthday", artist: "Anne Marie", img: "https://images.unsplash.com/photo-1487088678257-3a541e6e3922?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=967&q=80"},
+    {id: 3, src: song3, name: "Gangsta", artist: "Kehlani", img: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=675&q=80"},
+    {id: 4, src: song4, name: "Heathens", artist: "Twenty one pilots", img: "https://images.unsplash.com/photo-1489549132488-d00b7eee80f1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80"},
+    {id: 5, src: song5, name: "Surface", artist: "San Holo", img: cover}
 ];
 
 const Container = styled.div`
@@ -177,6 +177,11 @@ class Player extends React.PureComponent {
             return ret_min + ":" + ret_sec
         }
     };
+    convertTitle = (title) => {
+        if (title.length > 30) {
+            return title.substring(0, 29) + "..."
+        } else return title;
+    };
     handleRewinds = () => {
         if (this.state.repeat) {
             this.setState({repeat_once: false, repeat: false})
@@ -203,41 +208,15 @@ class Player extends React.PureComponent {
                         <h3>Songs</h3>
                         {songs.map((song) => <h5 style={{cursor: "pointer"}} key={song.id} onClick={() => this.playChoose(song.id)}>{songs[this.state.current_song].id === song.id ? "▶" : null}{song.name}</h5>)}
                     </div>
-                    <br/>
-                    <h5>{songs[this.state.current_song].name}</h5>
-                    <div>
-                        <button onClick={this.seekBackward}>{"<<"}</button>
-                        <button onClick={this.prevSong}  disabled={this.state.current_song === 0} >Back</button>
-                        <button onClick={this.handlePlay}>{this.state.play ? "Pause" : "Play"}</button>
-
-                        <button onClick={this.nextSong} disabled={this.state.current_song === songs.length - 1}>Next</button>
-                        <button onClick={this.seekForward}>{">>"}</button>
-
-                        <br/>
-
-                        <button onClick={this.repeatOnce} disabled={this.state.repeat}>Repeat once: {this.state.repeat_once ? "On" : "Off"}</button>
-                        <button onClick={this.repeatEverytime} disabled={this.state.repeat_once}>Repeat Evertime: {this.state.repeat ? "On" : "Off"}</button>
-                        <button onClick={this.shuffle}>Shuffle</button>
-
-                        <button onClick={this.handleRewinds}><i className={this.state.repeat ? "fad fa-repeat" : this.state.repeat_once ? "fad fa-repeat-1-alt" : "fad fa-angle-double-right"}></i></button>
-
-
-                    </div>
-                    <div>{this.state.loading ? "Loading..." : `${this.convertTime(this.state.current_time)}/${this.convertTime(this.state.song_duration)}`}</div>
-                    <label htmlFor="volume">Volume</label>
-                    <input type="range" name="volume" min={0} max={1} step={0.0001} onChange={this.handleVolume}/>
-                    <label htmlFor="slide">Slide</label>
-                    <input type="range" name="slide" id="" value={this.state.current_time} onChange={this.handleSlide} min={0} max={this.state.song_duration} />
-
                 </div>
                 <Wrapper>
                     <Padding>
                         <Left>
-                            <ImageContainer src={cover}>
+                            <ImageContainer src={songs[this.state.current_song].img}>
                                 <Hole />
                             </ImageContainer>
                             <Details>
-                                <Title>{songs[this.state.current_song].name}</Title>
+                                <Title>{this.convertTitle(songs[this.state.current_song].name)}</Title>
                                 <Artist>{songs[this.state.current_song].artist}</Artist>
                             </Details>
 
@@ -332,6 +311,7 @@ const Volume = styled.input`
       -webkit-transition: .2s;
       transition: opacity .2s;
       margin-left: 20px;
+       cursor: pointer;
     
     
     &::-webkit-slider-thumb {
@@ -363,6 +343,7 @@ const Slider = styled.input`
       transition: opacity .2s;
        margin: 0 20px;   
        border-radius: 999; 
+       cursor: pointer;
     
     &::-webkit-slider-thumb {
         -webkit-appearance: none;
