@@ -6,6 +6,9 @@ import song2 from "../../music/Anne-Marie - BIRTHDAY.mp3"
 import song3 from "../../music/Kehlani - Gangsta (from Suicide Squad - The Album) [Official Video].mp3"
 import song4 from "../../music/twenty one pilots - Heathens.mp3"
 import song5 from "../../music/San Holo - Surface (feat. Caspian).mp3"
+import song6 from "../../music/Aero Chord - ANTHEM.mp3"
+import song7 from "../../music/Biometrix & Sarah De Warren - Harley Fvcking Quinn (ft. Marcus) [Magic x Nightblue Release].mp3"
+import song8 from "../../music/Sickick - Infected (Barren Gates Remix).mp3"
 import cover from "../../images/flowers.jpg"
 
 const songs = [
@@ -13,7 +16,10 @@ const songs = [
     {id: 2, src: song2, name: "Birthday", artist: "Anne Marie", img: "https://images.unsplash.com/photo-1487088678257-3a541e6e3922?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=967&q=80"},
     {id: 3, src: song3, name: "Gangsta", artist: "Kehlani", img: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=675&q=80"},
     {id: 4, src: song4, name: "Heathens", artist: "Twenty one pilots", img: "https://images.unsplash.com/photo-1489549132488-d00b7eee80f1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80"},
-    {id: 5, src: song5, name: "Surface", artist: "San Holo", img: cover}
+    {id: 5, src: song5, name: "Surface", artist: "San Holo", img: cover},
+    {id: 6, src: song6, name: "Anthem", artist: "Aero Chord", img: cover},
+    {id: 7, src: song7, name: "Harley Fvcking Quinn", artist: "Biometrix & Sarah De Warren", img: cover},
+    {id: 8, src: song8, name: "Infected", artist: "Sickick", img: "https://images.unsplash.com/photo-1489549132488-d00b7eee80f1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80"}
 ];
 
 const Container = styled.div`
@@ -84,7 +90,7 @@ class Player extends React.PureComponent {
             });
             if (!first) this.handlePlay();
         };
-        this.handleDocumentTitle(song.name)
+        this.handleDocumentTitle(song.artist + " - " + song.name)
     };
     //  Play button
     handlePlay = () => {
@@ -226,13 +232,11 @@ class Player extends React.PureComponent {
                             <Slider type="range" name="slide" id="" value={this.state.current_time} onChange={this.handleSlide} min={0} max={this.state.song_duration}/>
                             <Time>{this.convertTime(this.state.song_duration)}</Time>
                         </SliderContainer>
+
                         <Controls>
                             <Previous className="fad fa-backward" onClick={this.prevSong} />
                             <PlayPause className={this.state.play ? "fad fa-pause" : "fad fa-play"} onClick={this.handlePlay}/>
                             <Next className="fad fa-forward" onClick={this.nextSong} />
-                        </Controls>
-                        <Controls>
-
                             <Rewind onClick={this.handleRewinds} className={this.state.repeat ? "fad fa-repeat" : this.state.repeat_once ? "fad fa-repeat-1-alt" : "fad fa-random"}/>
                             <Volume type="range" name="volume" min={0} max={1} step={0.0001} onChange={this.handleVolume}  />
                         </Controls>
@@ -327,11 +331,12 @@ const Volume = styled.input`
 const Rewind = styled.i`
     font-size: 17.5px;
     cursor: pointer;
+    margin-left: 50px;
 `;
 const SliderContainer = styled.div`
     display: flex;
     align-items: center;
-    width: 40%
+    width: 45%; 
 `;
 const Slider = styled.input`
     -webkit-appearance: none;
