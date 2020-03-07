@@ -1,22 +1,27 @@
 import React from "react";
+import styled from 'styled-components'
+
 import song1 from "../../music/DROELOE - Sunburn (Official Audio).mp3"
 import song2 from "../../music/Anne-Marie - BIRTHDAY.mp3"
 import song3 from "../../music/Kehlani - Gangsta (from Suicide Squad - The Album) [Official Video].mp3"
 import song4 from "../../music/twenty one pilots - Heathens.mp3"
 import song5 from "../../music/San Holo - Surface (feat. Caspian).mp3"
-import styled from 'styled-components'
+import cover from "../../images/flowers.jpg"
 
 const songs = [
-    {id: 1, src: song1, name: "DROELOE - Sunburn"},
-    {id: 2, src: song2, name: "Anne Marie - Birthday"},
-    {id: 3, src: song3, name: "Kehlani - Gangsta"},
-    {id: 4, src: song4, name: "Twenty one pilots - Heathens"},
-    {id: 5, src: song5, name: "San Holo - Surface"}
+    {id: 1, src: song1, name: "DROELOE - Sunburn", artist: "DROELOE"},
+    {id: 2, src: song2, name: "Anne Marie - Birthday", artist: "Anne Marie"},
+    {id: 3, src: song3, name: "Kehlani - Gangsta", artist: "Kehlani"},
+    {id: 4, src: song4, name: "Twenty one pilots - Heathens", artist: "Twenty one pilots"},
+    {id: 5, src: song5, name: "San Holo - Surface", artist: "San Holo"}
 ];
 
 const Container = styled.div`
     display: flex;
+    height: 100vh;
     flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 `;
 
 class Player extends React.PureComponent {
@@ -26,7 +31,8 @@ class Player extends React.PureComponent {
         current_time: 0,
         current_song: 0,
         repeat: false,
-        repeat_once: false
+        repeat_once: false,
+        random_next: false
     };
     audio = new Audio();
     componentDidMount() {
@@ -36,8 +42,7 @@ class Player extends React.PureComponent {
                this.handlePlay()
            }
         });
-        this.handleDocumentTitle(songs[this.state.current_song].name);
-        this.playSong(0);
+        this.playSong(0, true);
 
         this.audio.ontimeupdate = () => {
             //  Time update
@@ -68,7 +73,7 @@ class Player extends React.PureComponent {
         document.title = name
     };
     //  Main for playing music, handles all
-    playSong = (index) => {
+    playSong = (index, first) => {
         const song = songs[index];
         if (!this.audio.paused) this.audio.pause();
         this.audio.src = song.src;
@@ -77,7 +82,7 @@ class Player extends React.PureComponent {
                 song_duration: this.audio.duration,
                 current_song: index
             });
-            this.handlePlay()
+            if (!first) this.handlePlay();
         };
         this.handleDocumentTitle(song.name)
     };
@@ -133,6 +138,18 @@ class Player extends React.PureComponent {
     repeatOnce = () => {
         this.setState({repeat_once: !this.state.repeat_once})
     };
+    //  Forward 10 seconds
+    seekForward = () => {
+        this.audio.currentTime = this.state.current_time + 10
+    };
+    //  Backward 10 seconds
+    seekBackward = () => {
+        this.audio.currentTime = this.state.current_time - 10;
+    };
+    //  Random 1 music to start from
+    shuffle = () => {
+        this.playSong(Math.floor(Math.random() * Math.floor(songs.length)));
+    };
     //  Convert seconds to normal time
     convertTime = (time) => {
         const seconds = time.toFixed(2);
@@ -160,33 +177,242 @@ class Player extends React.PureComponent {
             return ret_min + ":" + ret_sec
         }
     };
+    handleRewinds = () => {
+        if (this.state.repeat) {
+            this.setState({repeat_once: false, repeat: false})
+        } else if (this.state.repeat_once) {
+            this.setState({repeat: true, repeat_once: false})
+        } else {
+            this.setState({repeat_once: true, repeat: false})
+        }
+    }
 
     render() {
         if (process.env.NODE_ENV === "development") console.log(this.state);
+        const rewinds = [
+            {id: 1, func: this.repeatOnce, icon: "fad fa-repeat-1-alt"},
+            {id: 2, func: this.repeatEverytime, icon: "fad fa-repeat"},
+            {id: 3, func: null, icon: "fad fa-angle-double-right"}
+            ];
+
 
         return(
             <Container>
                 <div>
-                    <h3>Songs</h3>
-                    {songs.map((song) => <h5 style={{cursor: "pointer"}} key={song.id} onClick={() => this.playChoose(song.id)}>{songs[this.state.current_song].id === song.id ? "▶" : null}{song.name}</h5>)}
+                    <div>
+                        <h3>Songs</h3>
+                        {songs.map((song) => <h5 style={{cursor: "pointer"}} key={song.id} onClick={() => this.playChoose(song.id)}>{songs[this.state.current_song].id === song.id ? "▶" : null}{song.name}</h5>)}
+                    </div>
+                    <br/>
+                    <h5>{songs[this.state.current_song].name}</h5>
+                    <div>
+                        <button onClick={this.seekBackward}>{"<<"}</button>
+                        <button onClick={this.prevSong}  disabled={this.state.current_song === 0} >Back</button>
+                        <button onClick={this.handlePlay}>{this.state.play ? "Pause" : "Play"}</button>
+
+                        <button onClick={this.nextSong} disabled={this.state.current_song === songs.length - 1}>Next</button>
+                        <button onClick={this.seekForward}>{">>"}</button>
+
+                        <br/>
+
+                        <button onClick={this.repeatOnce} disabled={this.state.repeat}>Repeat once: {this.state.repeat_once ? "On" : "Off"}</button>
+                        <button onClick={this.repeatEverytime} disabled={this.state.repeat_once}>Repeat Evertime: {this.state.repeat ? "On" : "Off"}</button>
+                        <button onClick={this.shuffle}>Shuffle</button>
+
+                        <button onClick={this.handleRewinds}><i className={this.state.repeat ? "fad fa-repeat" : this.state.repeat_once ? "fad fa-repeat-1-alt" : "fad fa-angle-double-right"}></i></button>
+
+
+                    </div>
+                    <div>{this.state.loading ? "Loading..." : `${this.convertTime(this.state.current_time)}/${this.convertTime(this.state.song_duration)}`}</div>
+                    <label htmlFor="volume">Volume</label>
+                    <input type="range" name="volume" min={0} max={1} step={0.0001} onChange={this.handleVolume}/>
+                    <label htmlFor="slide">Slide</label>
+                    <input type="range" name="slide" id="" value={this.state.current_time} onChange={this.handleSlide} min={0} max={this.state.song_duration} />
+
                 </div>
-                <br/>
-                <h5>{songs[this.state.current_song].name}</h5>
-                <div>
-                    <button  disabled={this.state.current_song === 0} onClick={this.prevSong}>Back</button>
-                    <button onClick={this.handlePlay}>{this.state.play ? "Pause" : "Play"}</button>
-                    <button disabled={this.state.current_song === songs.length - 1}  onClick={this.nextSong}>Next</button>
-                    <button onClick={this.repeatOnce}>Repeat once: {this.state.repeat_once ? "On" : "Off"}</button>
-                    <button onClick={this.repeatEverytime}>Repeat Evertime: {this.state.repeat ? "On" : "Off"}</button>
-                </div>
-                <div>{this.state.loading ? "Loading..." : `${this.convertTime(this.state.current_time)}/${this.convertTime(this.state.song_duration)}`}</div>
-                <label htmlFor="volume">Volume</label>
-                <input type="range" name="volume" min={0} max={1} step={0.0001} onChange={this.handleVolume}/>
-                <label htmlFor="slide">Slide</label>
-                <input type="range" name="slide" id="" value={this.state.current_time} onChange={this.handleSlide} min={0} max={this.state.song_duration} />
+                <Wrapper>
+                    <Padding>
+                        <Left>
+                            <ImageContainer src={cover}>
+                                <Hole />
+                            </ImageContainer>
+                            <Details>
+                                <Title>{songs[this.state.current_song].name}</Title>
+                                <Artist>{songs[this.state.current_song].artist}</Artist>
+                            </Details>
+
+                        </Left>
+                        <SliderContainer>
+                            <Time>{this.convertTime(this.state.current_time)}</Time>
+                            <Slider type="range" name="slide" id="" value={this.state.current_time} onChange={this.handleSlide} min={0} max={this.state.song_duration}/>
+                            <Time>{this.convertTime(this.state.song_duration)}</Time>
+                        </SliderContainer>
+                        <Controls>
+                            <Previous className="fad fa-backward" onClick={this.prevSong} />
+                            <PlayPause className={this.state.play ? "fad fa-pause" : "fad fa-play"} onClick={this.handlePlay}/>
+                            <Next className="fad fa-forward" onClick={this.nextSong} />
+                        </Controls>
+                        <Controls>
+
+                            <Rewind onClick={this.handleRewinds} className={this.state.repeat ? "fad fa-repeat" : this.state.repeat_once ? "fad fa-repeat-1-alt" : "fad fa-random"}/>
+                            <Volume type="range" name="volume" min={0} max={1} step={0.0001} onChange={this.handleVolume}  />
+                        </Controls>
+                    </Padding>
+                </Wrapper>
             </Container>
         )
     }
 }
 
 export default Player;
+
+const Wrapper = styled.div`
+    width: 100%;
+    
+    box-shadow: 0 -5px 10px rgba(0, 0, 0, .1);
+`;
+const Padding = styled.div`
+    padding: 10px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+`;
+const Left = styled.div`
+    display: flex;
+    justify-content: center;
+`;
+const Details = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 20px;
+    
+`;
+const Title = styled.div`
+    font-size: 17.5px;
+    font-weight: bold;
+    font-family: Poppins;
+`;
+const Artist = styled.div`
+    font-size: 14px;
+    margin-top: 0px;
+`;
+const Controls = styled.div`
+    display: flex;
+    align-items: center;
+`;
+const PlayPause = styled.i`
+    font-size: 22.5px;
+    margin: 0 25px;
+    cursor: pointer;
+`;
+const Next = styled.i`
+    font-size: 20px;
+    cursor: pointer;
+`;
+const Previous = styled.i`
+    font-size: 20px;
+    cursor: pointer;
+`;
+const SeekBackward = styled.i`
+    font-size: 20px;
+    cursor: pointer;
+`;
+const SeekForward = styled.i`
+    font-size: 20px;
+    margin-left: 15px;
+    cursor: pointer;
+`;
+const Volume = styled.input`
+    -webkit-appearance: none;
+      width: auto;
+      height: 3px;
+      background: #d3d3d3;
+      outline: none;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+      margin-left: 20px;
+    
+    
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #212121;
+        cursor: pointer;
+    }
+`;
+const Rewind = styled.i`
+    font-size: 17.5px;
+    cursor: pointer;
+`;
+const SliderContainer = styled.div`
+    display: flex;
+    align-items: center;
+    width: 40%
+`;
+const Slider = styled.input`
+    -webkit-appearance: none;
+      width: 100%;
+      height: 3px;
+      background: #d3d3d3;
+      outline: none;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+       margin: 0 20px;   
+       border-radius: 999; 
+    
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #212121;
+        cursor: pointer;
+    }
+    
+`;
+const Time = styled.div`
+    font-size: 13px;
+    font-family: Poppins;
+`;
+
+const ImageContainer = styled.div`
+    background: url(${props => props.src});
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+const Hole = styled.div`
+    width: 17.5px;
+    height: 17.5px;
+    border: 2px solid #eee;
+    border-radius: 50%;
+    background: #fff;
+`;
+
+/**
+ if ('mediaSession' in navigator) {
+
+                console.log("yes");
+                navigator.mediaSession.metadata = new MediaMetadata({ // eslint-disable-line no-use-before-define
+                    title: songs[this.state.current_song].name,
+                    artist: "me"
+                });
+                navigator.mediaSession.setActionHandler('play', this.handlePlay());
+                navigator.mediaSession.setActionHandler('pause', this.handlePlay());
+                navigator.mediaSession.setActionHandler('seekbackward', () => this.audio.currentTime = this.state.current_time - 10);
+                navigator.mediaSession.setActionHandler('seekforward', () => this.audio.currentTime = this.state.current_time + 10);
+                navigator.mediaSession.setActionHandler('previoustrack', this.prevSong());
+                navigator.mediaSession.setActionHandler('nexttrack', this.nextSong());
+            }
+ **/
