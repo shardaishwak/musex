@@ -11,7 +11,7 @@ import {
     SliderContainer,
     Time,
     Title, Volume, VolumeIcon,
-    Wrapper
+    Wrapper,
 } from "./Layout";
 
 const Player = props =>  {
@@ -40,35 +40,36 @@ const Player = props =>  {
     } = props;
     return(
         <>
+            {songs.length > 0 && current_song !== null  ?
+                <Wrapper>
+                    <Padding>
+                        <Left>
+                            <ImageContainer src={songs[current_song].img}>
+                                <Hole />
+                            </ImageContainer>
+                            <Details>
+                                <Title>{convertTitle(songs[current_song].title)}</Title>
+                                <Artist>{convertTitle(songs[current_song].artist)}</Artist>
+                            </Details>
 
-            <Wrapper>
-                <Padding>
-                    <Left>
-                        <ImageContainer src={songs[current_song].img}>
-                            <Hole />
-                        </ImageContainer>
-                        <Details>
-                            <Title>{convertTitle(songs[current_song].title)}</Title>
-                            <Artist>{songs[current_song].artist}</Artist>
-                        </Details>
+                        </Left>
+                        <SliderContainer>
+                            <Time>{convertTime(current_time)}</Time>
+                            <Slider type="range" name="slide" id="" value={current_time} onChange={handleSlide} min={0} max={song_duration} current_time={current_time} duration={song_duration}/>
+                            <Time>{convertTime(song_duration)}</Time>
+                        </SliderContainer>
 
-                    </Left>
-                    <SliderContainer>
-                        <Time>{convertTime(current_time)}</Time>
-                        <Slider type="range" name="slide" id="" value={current_time} onChange={handleSlide} min={0} max={song_duration} current_time={current_time} duration={song_duration}/>
-                        <Time>{convertTime(song_duration)}</Time>
-                    </SliderContainer>
-
-                    <Controls>
-                        <Previous className="fad fa-backward" onClick={prevSong} />
-                        <PlayPause className={play ? "fad fa-pause" : "fad fa-play"} onClick={handlePlay}/>
-                        <Next className="fad fa-forward" onClick={nextSong} />
-                        <Rewind onClick={handleRewinds} className={repeat ? "fad fa-repeat" : repeat_once ? "fad fa-repeat-1-alt" : "fad fa-random"}/>
-                        <VolumeIcon className={volume > 0 ? "fad fa-volume-up" : "fad fa-volume-mute"} onClick={toggleMute}/>
-                        <Volume type="range" name="volume" min={0} max={1} value={volume} step={0.0001} onChange={handleVolume} volume={volume} />
-                    </Controls>
-                </Padding>
-            </Wrapper>
+                        <Controls>
+                            <Previous className="fad fa-backward" onClick={prevSong} />
+                            <PlayPause className={play ? "fad fa-pause" : "fad fa-play"} onClick={handlePlay}/>
+                            <Next className="fad fa-forward" onClick={nextSong} />
+                            <Rewind onClick={handleRewinds} className={repeat ? "fad fa-repeat" : repeat_once ? "fad fa-repeat-1-alt" : "fad fa-random"}/>
+                            <VolumeIcon className={volume > 0 ? "fad fa-volume-up" : "fad fa-volume-mute"} onClick={toggleMute}/>
+                            <Volume type="range" name="volume" min={0} max={1} value={volume} step={0.0001} onChange={handleVolume} volume={volume} />
+                        </Controls>
+                    </Padding>
+                </Wrapper>
+                : null}
         </>
     )
 };

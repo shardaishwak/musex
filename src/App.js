@@ -14,11 +14,14 @@ class App extends React.PureComponent {
         error: null,
 
         email: "",
-        password: ""
+        password: "",
+
+        fetched_songs: []
     };
     async componentDidMount() {
         this.setState({loading: true, error: null});
-        const firestore = firebase.firestore()
+        const firestore = firebase.firestore();
+
         await firebase.auth()
             .onAuthStateChanged(user => {
                 if (user) {
@@ -28,8 +31,8 @@ class App extends React.PureComponent {
                         .doc(user.uid)
                         .get()
                         .then(doc => {
-                            if (doc.exists) this.setState({doc: doc.data()})
-                            this.setState({loading: false})
+                            if (doc.exists) this.setState({doc: doc.data()});
+                            this.setState({loading: false, fetched_songs: doc.data().songs})
                         })
                         .catch(err => {
                             this.setState({loading: false, error: err.message})
@@ -82,10 +85,10 @@ class App extends React.PureComponent {
     render() {
         console.log(this.state)
         if (this.state.loading) return <Loading className={"fas fa-spinner-third"}/>;
-        else if (this.state.auth) return (
+        else if (this.state.auth && !this.state.loading) return (
             <>
-                <Suspense fallback={<Loading />}>
-                    <Main />
+                <Suspense fallback={<Loading className={"fas fa-spinner-third"} />}>
+                    <Main songs={this.state.fetched_songs} />
                 </Suspense>
             </>
         );

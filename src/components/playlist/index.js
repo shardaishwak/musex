@@ -19,16 +19,18 @@ const Title = styled.div`
     justify-content: space-between;
     
     i {
-        font-size: 22px;
+        font-size: 17.5px;
         cursor: pointer;
     }
 `;
 const Right = styled.div`
     display: flex;
     align-items: center;
+    font-size: 20px;
 `
 const LogoutButton = styled.i`
     margin-left: 30px;
+     font-size: 15px;
 `
 const Songs = styled.div`
     display: flex;
@@ -77,11 +79,6 @@ const AddMusic = styled.i`
 `;
 
 class Playlist extends React.PureComponent {
-    Logout = async () => {
-        await firebase.auth()
-            .signOut()
-            .catch(err =>  this.setState({loading: false, error: err.message}))
-    };
 
     render() {
         const {songs,
@@ -101,7 +98,8 @@ class Playlist extends React.PureComponent {
             progress,
             status,
             cancel,
-            uploading
+            uploading,
+            Logout
         } = this.props;
         return (
             <>
@@ -130,26 +128,26 @@ class Playlist extends React.PureComponent {
                     <Title>
                         <div>Songs</div>
                         <Right>
-                            <div onClick={shuffle}><i className="fad fa-random"></i></div>
-                            <LogoutButton className={"fad fa-power-off"} onClick={this.Logout}/>
-                            <AddMusic className={"fad fa-plus"} onClick={toggleAddMusic}></AddMusic>
+                            {songs.length > 1 ? <div onClick={shuffle}><i className="fad fa-random"/></div> : null}
+                            <LogoutButton className={"fad fa-power-off"} onClick={Logout}/>
+                            <AddMusic className={"fad fa-plus"} onClick={toggleAddMusic}/>
                         </Right>
                     </Title>
                     <Songs>
-                        {songs ? songs.map((song) => {
+                        {songs.length > 0 ? songs.map((song) => {
                             const audio = new Audio();
                             audio.src = song.url;
 
                             return <Song key={song.id} onClick={() =>  playChoose(song.id)}>
                                 <Left>
                                     <ImageContainer src={song.img}>
-                                        {songs[current_song].id === song.id ? <i style={{color: "#fff", fontSize: "20px"}} className="fas fa-waveform"></i> : <Hole />}
+                                        {current_song !== null ? songs[current_song].id === song.id ? <i style={{color: "#fff", fontSize: "20px"}} className="fas fa-waveform"/> : <Hole /> : <Hole />}
                                     </ImageContainer>
                                     <SongTitle>{song.title}</SongTitle>
                                 </Left>
                                 <SongArtist>{song.artist}</SongArtist>
                             </Song>
-                        }) : "No songs"}
+                        }) : <NoSongFound onClick={toggleAddMusic}>Add your first song <i className={"fad fa-plus"}/></NoSongFound>}
 
                     </Songs>
                 </Container>
@@ -165,12 +163,26 @@ const Overlay = styled.div`
     height: 100vh;
     overflow: hidden;
     background: rgba(0, 0, 0, .6);
-`
+`;
 const Progress = styled.div`
     width: 50%;
     background: linear-gradient(90deg, ${props => props.status === "running" ? "orange" : props.status === "completed" ? "green" : props.status === "cancelled" ? "red" : "blue"} 0% ${props => props.process}%, #d3d3d3 ${props => props.process}% 100%);
     height: 5px;
     border-radius: 999;
+    transition: width .1s linear; 
+`;
+const NoSongFound = styled.div`
+    padding-top: 30px;
+    font-size: 17.5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: .4;
+    font-family: Poppins;
+    cursor: pointer;
+    i {
+        margin-left: 15px;
+    }
 `
 
 /**
