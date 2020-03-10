@@ -3,7 +3,7 @@ import styled from 'styled-components'
 export const Wrapper = styled.div`
     width: 100%;
     
-    box-shadow: 0 -5px 10px rgba(0, 0, 0, .1);
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, .1);
 `;
 export const Padding = styled.div`
     padding: 10px 30px;
@@ -61,11 +61,11 @@ export const Volume = styled.input`
     -webkit-appearance: none;
       width: auto;
       height: 3px;
-      background: #d3d3d3;
+      background: linear-gradient(90deg, #212121 0% ${props => props.volume * 100}%, #d3d3d3 ${props => (props.volume) * 100}% 100%);
       outline: none;
       -webkit-transition: .2s;
       transition: opacity .2s;
-      margin-left: 20px;
+      margin-left: 10px;
        cursor: pointer;
     
     
@@ -79,11 +79,17 @@ export const Volume = styled.input`
         cursor: pointer;
     }
 `;
+export const VolumeIcon = styled.i`
+    font-size: 15px;
+    cursor: pointer;
+    margin-left: 50px;
+`
 export const Rewind = styled.i`
     font-size: 17.5px;
     cursor: pointer;
     margin-left: 50px;
 `;
+
 export const SliderContainer = styled.div`
     display: flex;
     align-items: center;
@@ -93,7 +99,8 @@ export const Slider = styled.input`
     -webkit-appearance: none;
       width: 100%;
       height: 3px;
-      background: #d3d3d3;
+     background: linear-gradient(90deg, #212121 0% ${props => (props.current_time / props.duration) * 100}%, #d3d3d3 ${props => (props.current_time / props.duration) * 100}% 100%);
+
       outline: none;
       -webkit-transition: .2s;
       transition: opacity .2s;

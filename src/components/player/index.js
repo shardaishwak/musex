@@ -1,7 +1,7 @@
 import React from "react";
 import {
     Artist,
-     Controls,
+    Controls,
     Details,
     Hole,
     ImageContainer,
@@ -10,7 +10,7 @@ import {
     Slider,
     SliderContainer,
     Time,
-    Title, Volume,
+    Title, Volume, VolumeIcon,
     Wrapper
 } from "./Layout";
 
@@ -34,7 +34,9 @@ const Player = props =>  {
         convertTime,
         convertTitle,
         prevSong,
-        nextSong
+        nextSong,
+        volume,
+        toggleMute
     } = props;
     return(
         <>
@@ -46,14 +48,14 @@ const Player = props =>  {
                             <Hole />
                         </ImageContainer>
                         <Details>
-                            <Title>{convertTitle(songs[current_song].name)}</Title>
+                            <Title>{convertTitle(songs[current_song].title)}</Title>
                             <Artist>{songs[current_song].artist}</Artist>
                         </Details>
 
                     </Left>
                     <SliderContainer>
                         <Time>{convertTime(current_time)}</Time>
-                        <Slider type="range" name="slide" id="" value={current_time} onChange={handleSlide} min={0} max={song_duration}/>
+                        <Slider type="range" name="slide" id="" value={current_time} onChange={handleSlide} min={0} max={song_duration} current_time={current_time} duration={song_duration}/>
                         <Time>{convertTime(song_duration)}</Time>
                     </SliderContainer>
 
@@ -62,7 +64,8 @@ const Player = props =>  {
                         <PlayPause className={play ? "fad fa-pause" : "fad fa-play"} onClick={handlePlay}/>
                         <Next className="fad fa-forward" onClick={nextSong} />
                         <Rewind onClick={handleRewinds} className={repeat ? "fad fa-repeat" : repeat_once ? "fad fa-repeat-1-alt" : "fad fa-random"}/>
-                        <Volume type="range" name="volume" min={0} max={1} step={0.0001} onChange={handleVolume}  />
+                        <VolumeIcon className={volume > 0 ? "fad fa-volume-up" : "fad fa-volume-mute"} onClick={toggleMute}/>
+                        <Volume type="range" name="volume" min={0} max={1} value={volume} step={0.0001} onChange={handleVolume} volume={volume} />
                     </Controls>
                 </Padding>
             </Wrapper>

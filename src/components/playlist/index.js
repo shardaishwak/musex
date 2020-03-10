@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import {Hole, ImageContainer} from "../player/Layout";
+import * as firebase from "firebase";
 
 const Container = styled.div`
     padding: 30px 100px;
@@ -22,6 +23,13 @@ const Title = styled.div`
         cursor: pointer;
     }
 `;
+const Right = styled.div`
+    display: flex;
+    align-items: center;
+`
+const LogoutButton = styled.i`
+    margin-left: 30px;
+`
 const Songs = styled.div`
     display: flex;
     flex-direction: column;
@@ -64,39 +72,106 @@ const Time = styled.div`
     font-size: 15px;
     font-family: Poppins;
 `
+const AddMusic = styled.i`
+    margin-left: 30px;
+`;
 
 class Playlist extends React.PureComponent {
-    geetDuration = (audio) => {
-        audio.addEventListener("loadedmetadata", () => {
-            return audio.duration
-        })
+    Logout = async () => {
+        await firebase.auth()
+            .signOut()
+            .catch(err =>  this.setState({loading: false, error: err.message}))
     };
-    render() {
-        const {songs, current_song, playChoose, shuffle} = this.props;
-        return (
-            <Container>
-                <Title><div>Songs</div><div onClick={shuffle}><i className="fas fa-random"></i></div></Title>
-                <Songs>
-                    {songs.map((song) => {
-                        const audio = new Audio();
-                        audio.src = song.src;
 
-                        return <Song key={song.id} onClick={() =>  playChoose(song.id)}>
+    render() {
+        const {songs,
+            current_song,
+            playChoose,
+            shuffle,
+            toggleAddMusic,
+            handleFile,
+            handleArtist,
+            handleFileSubmit,
+            handleTitle,
+            handleCancel,
+            add_new,
+            file,
+            file_info,
+            error,
+            progress,
+            status,
+            cancel,
+            uploading
+        } = this.props;
+        return (
+            <>
+                {add_new ? <Overlay>
+                    <h1>Add new Music</h1>
+                    <form>
+                            <input type="file" accept={".mp3,audio/*"} name="file" id="file"  onChange={handleFile}/>
+                    </form>
+                    {file ? <div>
+                        <p>Filename: {file.name}</p>
+                        <div>Custom Title: <input type="text" name="title" id="title" value={file_info.title} onChange={handleTitle} /></div>
+                        <div>Custom Artist: <input type="text" name="artist" id="artist" value={file_info.artist} onChange={handleArtist}/></div>
+
+
+                        <button onClick={handleFileSubmit}>Add file</button>
+                        {!cancel ? <div><Progress status={status} process={progress} /> {status}</div>: null}
+
+                        {uploading && !cancel ? <div>
+                            <button onClick={handleCancel}>Cancel</button>
+                        </div> : cancel ? "Cancelled" : null}
+                        {error ? error : null}
+
+                    </div> : null}
+                </Overlay> : null}
+                <Container>
+                    <Title>
+                        <div>Songs</div>
+                        <Right>
+                            <div onClick={shuffle}><i className="fad fa-random"></i></div>
+                            <LogoutButton className={"fad fa-power-off"} onClick={this.Logout}/>
+                            <AddMusic className={"fad fa-plus"} onClick={toggleAddMusic}></AddMusic>
+                        </Right>
+                    </Title>
+                    <Songs>
+                        {songs ? songs.map((song) => {
+                            const audio = new Audio();
+                            audio.src = song.url;
+
+                            return <Song key={song.id} onClick={() =>  playChoose(song.id)}>
                                 <Left>
                                     <ImageContainer src={song.img}>
                                         {songs[current_song].id === song.id ? <i style={{color: "#fff", fontSize: "20px"}} className="fas fa-waveform"></i> : <Hole />}
                                     </ImageContainer>
-                                    <SongTitle>{song.name}</SongTitle>
+                                    <SongTitle>{song.title}</SongTitle>
                                 </Left>
                                 <SongArtist>{song.artist}</SongArtist>
-                        </Song>
-                    })}
+                            </Song>
+                        }) : "No songs"}
 
-                </Songs>
-            </Container>
+                    </Songs>
+                </Container>
+            </>
         )
     }
 }
+
+const Overlay = styled.div`
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: rgba(0, 0, 0, .6);
+`
+const Progress = styled.div`
+    width: 50%;
+    background: linear-gradient(90deg, ${props => props.status === "running" ? "orange" : props.status === "completed" ? "green" : props.status === "cancelled" ? "red" : "blue"} 0% ${props => props.process}%, #d3d3d3 ${props => props.process}% 100%);
+    height: 5px;
+    border-radius: 999;
+`
 
 /**
  *
