@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 export const Wrapper = styled.div`
     width: 100%;
-    
+    z-index: 999;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, .1);
 `;
 export const Padding = styled.div`

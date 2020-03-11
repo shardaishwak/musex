@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import {Hole, ImageContainer} from "../player/Layout";
 import * as firebase from "firebase";
+import NewSong from "./NewSong";
 
 const Container = styled.div`
     padding: 30px 100px;
@@ -80,7 +81,9 @@ const AddMusic = styled.i`
 
 class Playlist extends React.PureComponent {
 
+
     render() {
+        console.log("remdering again!")
         const {songs,
             current_song,
             playChoose,
@@ -99,31 +102,29 @@ class Playlist extends React.PureComponent {
             status,
             cancel,
             uploading,
-            Logout
+            Logout,
+            handleDrop,
+            deleteCurrentFile
         } = this.props;
         return (
             <>
-                {add_new ? <Overlay>
-                    <h1>Add new Music</h1>
-                    <form>
-                            <input type="file" accept={".mp3,audio/*"} name="file" id="file"  onChange={handleFile}/>
-                    </form>
-                    {file ? <div>
-                        <p>Filename: {file.name}</p>
-                        <div>Custom Title: <input type="text" name="title" id="title" value={file_info.title} onChange={handleTitle} /></div>
-                        <div>Custom Artist: <input type="text" name="artist" id="artist" value={file_info.artist} onChange={handleArtist}/></div>
-
-
-                        <button onClick={handleFileSubmit}>Add file</button>
-                        {!cancel ? <div><Progress status={status} process={progress} /> {status}</div>: null}
-
-                        {uploading && !cancel ? <div>
-                            <button onClick={handleCancel}>Cancel</button>
-                        </div> : cancel ? "Cancelled" : null}
-                        {error ? error : null}
-
-                    </div> : null}
-                </Overlay> : null}
+                {add_new ? <NewSong
+                    handleFile={handleFile}
+                    handleArtist={handleArtist}
+                    handleFileSubmit={handleFileSubmit}
+                    handleTitle={handleTitle}
+                    handleCancel={handleCancel}
+                    file={file}
+                    file_info={file_info}
+                    error={error}
+                    progress={progress}
+                    status={status}
+                    cancel={cancel}
+                    uploading={uploading}
+                    toggle={toggleAddMusic}
+                    handleDrop={handleDrop}
+                    deleteCurrentFile={deleteCurrentFile}
+                /> : null}
                 <Container>
                     <Title>
                         <div>Songs</div>
@@ -135,9 +136,6 @@ class Playlist extends React.PureComponent {
                     </Title>
                     <Songs>
                         {songs.length > 0 ? songs.map((song) => {
-                            const audio = new Audio();
-                            audio.src = song.url;
-
                             return <Song key={song.id} onClick={() =>  playChoose(song.id)}>
                                 <Left>
                                     <ImageContainer src={song.img}>
@@ -156,21 +154,6 @@ class Playlist extends React.PureComponent {
     }
 }
 
-const Overlay = styled.div`
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    background: rgba(0, 0, 0, .6);
-`;
-const Progress = styled.div`
-    width: 50%;
-    background: linear-gradient(90deg, ${props => props.status === "running" ? "orange" : props.status === "completed" ? "green" : props.status === "cancelled" ? "red" : "blue"} 0% ${props => props.process}%, #d3d3d3 ${props => props.process}% 100%);
-    height: 5px;
-    border-radius: 999;
-    transition: width .1s linear; 
-`;
 const NoSongFound = styled.div`
     padding-top: 30px;
     font-size: 17.5px;

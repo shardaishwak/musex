@@ -2,93 +2,29 @@ import React, {Suspense} from 'react';
 import './App.css';
 import * as firebase from "firebase";
 import styled from "styled-components";
+import {AuthLoading, AuthStatus, GetAuthInfo, Login, RemoveAuthInfo, Signup} from "./store/actions/authActions";
+import {connect} from "react-redux";
+import {GetSongs} from "./store/actions/songsActions";
 const Main  = React.lazy(() => import("./components/audio"));
 
 
 class App extends React.PureComponent {
     state = {
-        auth: false,
-        account: null,
-        doc: null,
-        loading: false,
-        error: null,
-
         email: "",
         password: "",
-
-        fetched_songs: []
     };
     async componentDidMount() {
-        this.setState({loading: true, error: null});
-        const firestore = firebase.firestore();
-
-        await firebase.auth()
-            .onAuthStateChanged(user => {
-                if (user) {
-                    this.setState({auth: true, account: user});
-                    firestore
-                        .collection("users")
-                        .doc(user.uid)
-                        .get()
-                        .then(doc => {
-                            if (doc.exists) this.setState({doc: doc.data()});
-                            this.setState({loading: false, fetched_songs: doc.data().songs})
-                        })
-                        .catch(err => {
-                            this.setState({loading: false, error: err.message})
-                        });
-                } else {
-                    this.setState({auth: false, account: null, loading: false, doc: null})
-                }
-            });
+        await this.props.AuthStatus()
     }
-    Signup = async (email, password) => {
-        this.setState({loading: true, error: null})
-        const firestore = firebase.firestore();
-        await firebase.auth()
-            .createUserWithEmailAndPassword(email, password)
-            .then((user) => {
-                this.setState({auth: true, account: user.user});
-                firestore
-                    .collection("users")
-                    .doc(user.user.uid)
-                    .set({
-                        createdAt: new Date()
-                    })
-                    .then(doc => this.setState({loading: false}))
-                    .catch(err =>  this.setState({loading: false, error: err.message}));
-            })
-            .catch(err => {
-                this.setState({loading: false, error: err.message})
-            });
-
-    };
-    Login = async (email, password) => {
-        this.setState({loading: true, error: null});
-
-        await firebase.auth()
-            .signInWithEmailAndPassword(email, password)
-            .then(user => {
-                this.setState({loading: false});
-            })
-            .catch(err => {
-                this.setState({loading: false, error: err.message})
-            });
-    };
-    Logout = async () => {
-        await firebase.auth()
-            .signOut()
-            .catch(err =>  this.setState({loading: false, error: err.message}))
-    };
     handleInput = (e) => this.setState({[e.target.name]: e.target.value});
 
     render() {
-        console.log(this.state)
-        if (this.state.loading) return <Loading className={"fas fa-spinner-third"}/>;
-        else if (this.state.auth && !this.state.loading) return (
+        console.log(this.state);
+        if ( this.props.auth.loading) return <Loading className={"fas fa-spinner-third"}/>;
+        else if (this.props.auth.auth && !this.props.auth.loading) return (
             <>
                 <Suspense fallback={<Loading className={"fas fa-spinner-third"} />}>
-                    <Main songs={this.state.fetched_songs} />
+                    <Main songs={this.props.songs} />
                 </Suspense>
             </>
         );
@@ -100,12 +36,10 @@ class App extends React.PureComponent {
                     <input type="email" name="email" id="email" onChange={this.handleInput} value={this.state.email} />
                     <input type="password" name="password" id="password" onChange={this.handleInput} value={this.state.password} />
                     <Buttons>
-                        <button className="login" onClick={() => this.Login(this.state.email, this.state.password)}>Login</button>
-
-                        <button className="signup" onClick={() => this.Signup(this.state.email, this.state.password)}>Create ccount</button>
+                        <button className="login" onClick={() => this.props.Login(this.state.email, this.state.password)}>Login</button>
+                        <button className="signup" onClick={() => this.props.Signup(this.state.email, this.state.password)}>Create ccount</button>
                     </Buttons>
                 </Form>
-                <Error>{this.state.error ? this.state.error : null}</Error>
             </Container>
         )
     }
@@ -129,7 +63,7 @@ const SmallTitle = styled(Title)`
     font-weight: 400;
     margin-bottom: 50px;
 `
-const Form = styled.form`
+const Form = styled.div`
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -191,5 +125,20 @@ const Loading = styled.i`
         to {transform: rotate(360deg)}
     }
 `
+const mapStateToProps = (state) => {
+    return {
+        auth: state.auth,
+        songs: state.songs.songs
+    }
+}
 
-export default App;
+export default connect(mapStateToProps, {
+    AuthStatus,
+    GetAuthInfo,
+    RemoveAuthInfo,
+    AuthLoading: AuthLoading,
+    GetSongs: GetSongs,
+    Signup: Signup,
+    Login: Login
+})
+(App);

@@ -4,19 +4,6 @@ import Player from "../player";
 import Playlist from "../playlist";
 import Unsplash from "unsplash-js";
 
-/*
-import song1 from "../../music/DROELOE - Sunburn (Official Audio).mp3";
-import song2 from "../../music/Anne-Marie - BIRTHDAY.mp3";
-import song3 from "../../music/Kehlani - Gangsta (from Suicide Squad - The Album) [Official Video].mp3";
-import song4 from "../../music/twenty one pilots - Heathens.mp3";
-import song5 from "../../music/San Holo - Surface (feat. Caspian).mp3";
-import cover from "../../images/flowers.jpg";
-import song6 from "../../music/Aero Chord - ANTHEM.mp3";
-import song7
-    from "../../music/Biometrix & Sarah De Warren - Harley Fvcking Quinn (ft. Marcus) [Magic x Nightblue Release].mp3";
-import song8 from "../../music/Sickick - Infected (Barren Gates Remix).mp3";
-*/
-
 import * as firebase from "firebase";
 
 const unsplash = new Unsplash({
@@ -60,16 +47,9 @@ class Main extends React.PureComponent {
     };
     audio = new Audio();
     async componentDidMount() {
-
-
         //  Add fetched music
         await this.setState({songs: this.props.songs});
-        //  Windows handlers
-        window.addEventListener("keydown", (e) => {
-            if (e.ctrlKey && e.keyCode === 80 && e.shiftKey) {
-                this.handlePlay()
-            }
-        });
+
         if (this.state.songs) {
             this.playSong(0, true);
         }
@@ -225,7 +205,10 @@ class Main extends React.PureComponent {
             this.setState({repeat_once: true, repeat: false})
         }
     };
-    toggleAddMusic = () => this.setState({add_new: !this.state.add_new});
+    toggleAddMusic = () => {
+        this.setState({add_new: !this.state.add_new});
+        this.deleteCurrentFile()
+    }
     handleFile = e => this.setState({file: e.target.files[0], file_info: {title: e.target.files[0].name, artist: e.target.files[0].name.split("-")[0]}});
     handleTitle = e => this.setState({file_info: {title: e.target.value, artist: this.state.file_info.artist}});
     handleArtist = e => this.setState({file_info: {title: this.state.file_info.title, artist: e.target.value}});
@@ -285,8 +268,7 @@ class Main extends React.PureComponent {
                                         .update({songs: newSongs})
                                         .then(() => {
                                             this.setState({uploading: false, status: "completed", songs: [...this.state.songs, at_song]});
-
-                                            setTimeout(() => this.setState({add_new: !this.state.add_new, process: 0, error: null,cancel: false}), 700)
+                                            setTimeout(() => this.setState({add_new: !this.state.add_new, process: 0, error: null,cancel: false}), 1000)
                                         })
                                         .catch(err => console.log(err))
                                 } else {
@@ -304,8 +286,33 @@ class Main extends React.PureComponent {
                     })
             })
     };
-    handleCancel = () => this.setState({cancel: true});
+    handleCancel = () => this.setState({
+        cancel: true,
+        file: "",
+        file_info: {
+            title: "",
+            artist: "unknown",
+            cover: "https://images.unsplash.com/photo-1508726295872-0b87b9999406?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=564&q=80"
+        },
+        error: null,
+        progress: 0,
+        status: null,
+        uploading: false}
+        );
 
+    deleteCurrentFile = () => this.setState({
+        cancel: false,
+        file: "",
+        file_info: {
+            title: "",
+            artist: "unknown",
+            cover: "https://images.unsplash.com/photo-1508726295872-0b87b9999406?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=564&q=80"
+        },
+        error: null,
+        progress: 0,
+        status: null,
+        uploading: false
+    })
     Logout = async () => {
         this.audio.pause()
         await firebase.auth()
@@ -313,7 +320,13 @@ class Main extends React.PureComponent {
             .catch(err =>  this.setState({loading: false, error: err.message}))
     };
 
+    handleDrop = e => {
+        e.preventDefault();
+        this.setState({file: e.dataTransfer.items[0].getAsFile(), file_info: {title: e.dataTransfer.items[0].getAsFile().name, artist: e.dataTransfer.items[0].getAsFile().name.split("-")[0]}})
+    }
+
     render() {
+        console.log("rendering...")
         if (process.env.NODE_ENV === "development") console.log(this.state);
         const sorted_songs = this.state.songs ? this.state.songs.sort((a,b) => {
             const title_a = a.title.toLowerCase(), title_b = b.title.toLowerCase();
@@ -342,6 +355,8 @@ class Main extends React.PureComponent {
                     handleFileSubmit={this.handleFileSubmit}
                     handleCancel={this.handleCancel}
                     Logout={this.Logout}
+                    handleDrop={this.handleDrop}
+                    deleteCurrentFile={this.deleteCurrentFile}
                 />
 
                 <Player
