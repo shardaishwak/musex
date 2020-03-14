@@ -1,9 +1,17 @@
-import {AUTH_LOADING, AUTH_STATUS, GET_AUTH_INFO, REMOVE_AUTH_INFO} from "../constants/authConstants";
+import {
+    AUTH_LOADING,
+    AUTH_STATUS,
+    CLEAR_AUTH_ERROR,
+    GET_AUTH_ERROR,
+    GET_AUTH_INFO,
+    REMOVE_AUTH_INFO
+} from "../constants/authConstants";
 
 const initialState = {
     auth: null,
     auth_info: null,
-    loading: false
+    loading: false,
+    error: null
 };
 
 const auth_status = (state, {payload}) => {
@@ -30,6 +38,18 @@ const auth_loading = (state, {payload}) => {
         loading: payload
     }
 }
+const get_auth_error = (state, {payload}) => {
+    return {
+        ...state,
+        error: payload
+    }
+}
+const clear_auth_error = (state, {payload}) => {
+    return {
+        ...state,
+        error: null
+    }
+}
 
 export default (state = initialState, action) => {
     switch (action.type) {
@@ -41,6 +61,10 @@ export default (state = initialState, action) => {
             return remove_auth_info(state, action)
         case AUTH_LOADING:
             return auth_loading(state, action)
+        case GET_AUTH_ERROR:
+            return get_auth_error(state, action)
+        case CLEAR_AUTH_ERROR:
+            return clear_auth_error(state, action)
 
         default: return state;
     }

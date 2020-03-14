@@ -1,9 +1,9 @@
 import React from "react";
 import styled from "styled-components";
 import {Hole, ImageContainer} from "../player/Layout";
-import * as firebase from "firebase";
+import {connect} from "react-redux";
+import {Logout} from '../../store/actions/authActions'
 import NewSong from "./NewSong";
-
 const Container = styled.div`
     padding: 30px 100px;
     overflow-y: scroll;
@@ -80,66 +80,39 @@ const AddMusic = styled.i`
 `;
 
 class Playlist extends React.PureComponent {
-
+    state = {add_song: false}
+    handleAddSong = () => this.setState({add_song: !this.state.add_song})
 
     render() {
-        console.log("remdering again!")
-        const {songs,
+        const sorted_songs = this.props.songs ? this.props.songs.sort((a,b) => {
+            const title_a = a.title.toLowerCase(), title_b = b.title.toLowerCase();
+            if (title_a < title_b) return -1;
+            else return 1;
+        }) : [];
+        const {
             current_song,
             playChoose,
             shuffle,
             toggleAddMusic,
-            handleFile,
-            handleArtist,
-            handleFileSubmit,
-            handleTitle,
-            handleCancel,
-            add_new,
-            file,
-            file_info,
-            error,
-            progress,
-            status,
-            cancel,
-            uploading,
-            Logout,
-            handleDrop,
-            deleteCurrentFile
         } = this.props;
         return (
             <>
-                {add_new ? <NewSong
-                    handleFile={handleFile}
-                    handleArtist={handleArtist}
-                    handleFileSubmit={handleFileSubmit}
-                    handleTitle={handleTitle}
-                    handleCancel={handleCancel}
-                    file={file}
-                    file_info={file_info}
-                    error={error}
-                    progress={progress}
-                    status={status}
-                    cancel={cancel}
-                    uploading={uploading}
-                    toggle={toggleAddMusic}
-                    handleDrop={handleDrop}
-                    deleteCurrentFile={deleteCurrentFile}
-                /> : null}
+                {this.state.add_song ? <NewSong toggleAddSong={this.handleAddSong} /> : null}
                 <Container>
                     <Title>
                         <div>Songs</div>
                         <Right>
-                            {songs.length > 1 ? <div onClick={shuffle}><i className="fad fa-random"/></div> : null}
-                            <LogoutButton className={"fad fa-power-off"} onClick={Logout}/>
-                            <AddMusic className={"fad fa-plus"} onClick={toggleAddMusic}/>
+                            {sorted_songs.length > 1 ? <div onClick={shuffle}><i className="fad fa-random"/></div> : null}
+                            <LogoutButton className={"fad fa-power-off"} onClick={this.props.Logout}/>
+                            <AddMusic className={"fad fa-plus"} onClick={this.handleAddSong}/>
                         </Right>
                     </Title>
                     <Songs>
-                        {songs.length > 0 ? songs.map((song) => {
+                        {sorted_songs.length > 0 ? sorted_songs.map((song) => {
                             return <Song key={song.id} onClick={() =>  playChoose(song.id)}>
                                 <Left>
                                     <ImageContainer src={song.img}>
-                                        {current_song !== null ? songs[current_song].id === song.id ? <i style={{color: "#fff", fontSize: "20px"}} className="fas fa-waveform"/> : <Hole /> : <Hole />}
+                                        {current_song !== null ? sorted_songs[current_song].id === song.id ? <i style={{color: "#fff", fontSize: "20px"}} className="fas fa-waveform"/> : <Hole /> : <Hole />}
                                     </ImageContainer>
                                     <SongTitle>{song.title}</SongTitle>
                                 </Left>
@@ -167,18 +140,9 @@ const NoSongFound = styled.div`
         margin-left: 15px;
     }
 `
-
-/**
- *
- *
- {songs.map((song) =>
-                    <h5
-                        style={{cursor: "pointer"}}
-                        key={song.id}
-                        onClick={() => playChoose(song.id)}
-                    >
-                        {songs[current_song].id === song.id ? "▶" : null}{song.name}
-                    </h5>)}
- */
-
-export default (Playlist)
+const ms = state => {
+    return {
+        songs: state.songs.songs
+    }
+}
+export default connect(ms, {Logout: Logout})(Playlist)

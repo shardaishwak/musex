@@ -1,6 +1,5 @@
 import React, {Suspense} from 'react';
 import './App.css';
-import * as firebase from "firebase";
 import styled from "styled-components";
 import {AuthLoading, AuthStatus, GetAuthInfo, Login, RemoveAuthInfo, Signup} from "./store/actions/authActions";
 import {connect} from "react-redux";

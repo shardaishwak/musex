@@ -1,8 +1,16 @@
 import * as firebase from "firebase";
-import {AUTH_LOADING, AUTH_STATUS, GET_AUTH_INFO, LOGIN, LOGOUT, REMOVE_AUTH_INFO} from "../constants/authConstants";
-import {GetSongs} from "./songsActions";
+import {
+    AUTH_LOADING,
+    AUTH_STATUS, CLEAR_AUTH_ERROR,
+    GET_AUTH_ERROR,
+    GET_AUTH_INFO,
+    LOGIN,
+    LOGOUT,
+    REMOVE_AUTH_INFO
+} from "../constants/authConstants";
+import {ClearSongs, GetSongs} from "./songsActions";
 
-export const AuthStatus = (status) => async (dispatch, getState) => {
+export const AuthStatus = () => async (dispatch, getState) => {
     dispatch(AuthLoading(true))
     await firebase.auth().onAuthStateChanged(async user => {
         if (user) {
@@ -21,7 +29,7 @@ export const Login  = (email, password) => async (dispatch, getState) => {
     await firebase.auth()
         .signInWithEmailAndPassword(email, password)
         .then(() => dispatch({type: LOGIN}))
-        .catch(err => console.log(err))
+        .catch(err => dispatch(GetAuthError(err.message)))
 }
 export const Signup  = (email, password) => async (dispatch, getState) => {
     dispatch(AuthLoading(true))
@@ -34,17 +42,19 @@ export const Signup  = (email, password) => async (dispatch, getState) => {
                 songs: []
             })
         })
-        .catch(err => console.log(err))
+        .catch(err => dispatch(GetAuthError(err.message)))
 };
-export const Logout  = (email, password) => async (dispatch, getState) => {
+export const Logout  = () => async (dispatch, getState) => {
     dispatch(AuthLoading(true))
     await firebase.auth()
         .signOut()
         .then(() => {
             dispatch({type: LOGOUT})
             dispatch(RemoveAuthInfo());
+            dispatch(ClearSongs())
+
         })
-        .catch(err => console.log(err))
+        .catch(err => dispatch(GetAuthError(err.message)))
 }
 export const GetAuthInfo = (info) => async (dispatch, getState) => {
     dispatch({type: GET_AUTH_INFO, payload: info})
@@ -54,4 +64,10 @@ export const RemoveAuthInfo = () => async (dispatch, getState) => {
 }
 export const AuthLoading = (loading) => async (dispatch, getState) => {
     dispatch({type: AUTH_LOADING, payload: loading})
+}
+export const GetAuthError = (error) => async (dispatch, getState) => {
+    dispatch({type: GET_AUTH_ERROR, payload: error})
+}
+export const ClearAuthError = () => async (dispatch, getState) => {
+    dispatch({type: CLEAR_AUTH_ERROR})
 }
