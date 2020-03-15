@@ -190,6 +190,7 @@ class Main extends React.PureComponent {
         }
     };
     song_deleted = () => {
+        //  TODO: CONVERT CURRENT_SONG TO REDUX
         if (this.audio.played && this.props.songs.length > 0) {
             this.audio.pause()
             this.audio.src = ""
