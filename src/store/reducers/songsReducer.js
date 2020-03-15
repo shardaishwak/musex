@@ -1,6 +1,6 @@
 import {
     ADD_SONG, CANCEL_SONG,
-    CLEAR_SONGS, CLEAR_STATUS_SONG,
+    CLEAR_SONGS, CLEAR_STATUS_SONG, DELETE_SONG,
     ERROR_SONG,
     GET_SONGS,
     PROGRESS_SONG,
@@ -33,6 +33,12 @@ const add_song = (state, {payload}) => {
     return {
         ...state,
         songs: [...state.songs, payload]
+    }
+}
+const delete_song = (state, {payload}) => {
+    return {
+        ...state,
+        songs: payload
     }
 }
 const error_song = (state, {payload}) => {
@@ -93,6 +99,8 @@ export default (state = initialState, action) => {
             return cancel_song(state, action)
         case CLEAR_STATUS_SONG:
             return clear_status(state, action)
+        case DELETE_SONG:
+            return delete_song(state, action)
 
         default: return state;
 

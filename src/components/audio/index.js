@@ -13,7 +13,6 @@ const Container = styled.div`
 
 class Main extends React.PureComponent {
     state = {
-        songs: [],
         play: false,
         song_duration: 0,
         current_time: 0,
@@ -26,12 +25,14 @@ class Main extends React.PureComponent {
         last_volume: 1,
         mute: false,
 
+        removed: false
+
     };
     audio = new Audio();
     async componentDidMount() {
         //  Add fetched music
 
-        if (this.props.songs) {
+        if (this.props.songs.length > 0) {
             this.playSong(0, true);
         }
 
@@ -122,6 +123,7 @@ class Main extends React.PureComponent {
     playChoose = (id) => {
         const index = this.props.songs.findIndex(i => i.id === id);
         this.playSong(index)
+        this.setState({removed: false});
     };
     //  Forward 10 seconds
     seekForward = () => {
@@ -186,9 +188,28 @@ class Main extends React.PureComponent {
             this.setState({repeat_once: true, repeat: false})
         }
     };
+    song_deleted = () => {
+        if (this.audio.played) {
+            this.audio.pause()
+            this.audio.src = ""
+            this.handleDocumentTitle("Musex Cloud Player")
+            this.setState({removed: true})
+        }
+        if (this.props.songs.length > 0) {
+            console.log("there")
+            console.log(this.props.songs)
+            this.playSong(0, true)
+            this.setState({currentSong: 0, current_time: 0})
+        } else {
+            this.audio.src = ""
+            this.handleDocumentTitle("Musex Cloud Player")
+            this.setState({removed: true})
+        }
+    }
 
     render() {
         console.log("rendering...")
+        console.log(this.props.songs)
         if (process.env.NODE_ENV === "development") console.log(this.state);
         return(
             <Container>
@@ -196,8 +217,9 @@ class Main extends React.PureComponent {
                     playChoose={this.playChoose}
                     current_song={this.state.current_song}
                     shuffle={this.shuffle}
+                    song_deleted={this.song_deleted}
                 />
-                <Player
+                {this.props.songs.length >= 0 && !this.state.removed ? <Player
                     play={this.state.play}
                     song_duration={this.state.song_duration}
                     current_song={this.state.current_song}
@@ -216,7 +238,7 @@ class Main extends React.PureComponent {
                     nextSong={this.nextSong}
                     volume={this.state.volume}
                     toggleMute={this.toggleMute}
-                />
+                /> : null}
             </Container>
         )
     }

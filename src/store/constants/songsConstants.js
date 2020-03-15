@@ -1,6 +1,6 @@
 export const GET_SONGS = "GET_SONGS"
 export const ADD_SONG = "ADD_SONG"
-export const REMOVE_SONG = "REMOVE_SONG"
+export const DELETE_SONG = "DELETE_SONG"
 export const CLEAR_SONGS = "CLEAR_SONGS"
 
 export const ERROR_SONG = "ERROR_SONG"

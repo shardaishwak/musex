@@ -2,7 +2,7 @@ import * as firebase from "firebase";
 import {
     ADD_SONG, CANCEL_SONG,
     CLEAR_SONGS,
-    CLEAR_STATUS_SONG, ERROR_SONG,
+    CLEAR_STATUS_SONG, DELETE_SONG, ERROR_SONG,
     GET_SONGS,
     PROGRESS_SONG,
     STATUS_SONG,
@@ -26,10 +26,31 @@ export const GetSongs = () => async (dispatch, getState) => {
         .then(doc => {
             if (doc.exists) dispatch({type: GET_SONGS, payload: doc.data().songs})
         })
-        .catch(err => console.log(err.code, err.message))
+        .catch(err => dispatch({type: ERROR_SONG, payload: err}))
 }
 export const ClearSongs = () => (dispatch, getState) => {
     dispatch({type: CLEAR_SONGS})
+}
+export const DeleteSong =  (id) => async    (dispatch, getState) => {
+    const firestore = firebase.firestore()
+    const storageRef = firebase.storage().ref()
+    const uid = getState().auth.auth_info.uid;
+
+    const last_songs = getState().songs.songs
+    const index = last_songs.findIndex(song => song.id === id)
+
+    const filename = last_songs[index].title;
+
+    last_songs.splice(index, 1)
+
+    dispatch({type: DELETE_SONG, payload: last_songs})
+
+    const song_ref = storageRef.child("music/" + filename)
+
+    await song_ref.delete().then(async () => {
+        await firestore.collection("users").doc(uid).update({songs: last_songs}).catch(err => dispatch({type: ERROR_SONG, payload: err}))
+    }).catch(err => dispatch({type: ERROR_SONG, payload: err}))
+
 }
 export const AddSong = (file) => async (dispatch, getState) => {
     dispatch({type: CLEAR_STATUS_SONG})
@@ -85,6 +106,8 @@ export const AddSong = (file) => async (dispatch, getState) => {
                                 id: new Date().valueOf()
                             };
                             //  Set ne song to the list, move all to app.js
+
+                            dispatch({type: ADD_SONG, payload: at_song})
                             console.log(at_song);
                             if (lastSongs) {
                                 const newSongs = [...lastSongs, at_song];
@@ -95,7 +118,6 @@ export const AddSong = (file) => async (dispatch, getState) => {
                                     .then(() => {
                                         dispatch({type: UPLOADING_SONG, payload: false})
                                         dispatch({type: STATUS_SONG, payload: "completed"})
-                                        dispatch({type: ADD_SONG, payload: at_song})
                                         dispatch({type: CLEAR_STATUS_SONG})
                                         /*this.setState({uploading: false, status: "completed", songs: [...this.state.songs, at_song]});
 
@@ -111,7 +133,6 @@ export const AddSong = (file) => async (dispatch, getState) => {
                                     .then(() => {
                                         dispatch({type: UPLOADING_SONG, payload: false})
                                         dispatch({type: STATUS_SONG, payload: "completed"})
-                                        dispatch({type: ADD_SONG, payload: at_song})
                                         dispatch({type: CLEAR_STATUS_SONG})
                                         /*this.setState({uploading: false, status: "completed", songs: [at_song]});
                                         setTimeout(() => this.setState({add_new: !this.state.add_new, process: 0, error: null,cancel: false}), 700)*/

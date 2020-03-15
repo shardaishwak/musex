@@ -30,6 +30,7 @@ const Topper = styled.div`
     }
     i {
         font-size: 17.5px;
+        cursor: pointer;
     }
 `
 const Label = styled.label`
@@ -112,17 +113,21 @@ const Progress = styled.div`
     width: 200px;
     margin-right: 30px;
 `
-const Upload = styled.div`
+const Upload = styled.button`
     padding: 7.5px 15px;
     margin-right: 30px;
     font-size: 13px;
     font-family: Poppins;
     text-transform: uppercase;
     background: #212121;
+    border: none;
     color: #fff;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
-    cursor: pointer;
+    
+    &:disabled {
+        opacity: .6;
+    }
 `
 
 
@@ -138,7 +143,7 @@ class NewSong extends React.PureComponent {
     }
     handleDeleteFile = () => this.setState({file: null})
     uploadFile = async () => {
-        this.props.AddSong(this.state.file)
+        await this.props.AddSong(this.state.file)
     }
     handleCancel = () => this.props.CancelUploadSong()
     render() {
@@ -147,9 +152,7 @@ class NewSong extends React.PureComponent {
         const filename = this.state.file ?  this.state.file.name.slice(0, -filetype.length).split("-")[1] || this.state.file.name : null;
         const fileartist = this.state.file ?  this.state.file.name.slice(0, -filetype.length).split("-")[0] || this.state.file.name : null;
 
-        if (this.props.status === "completed") {
-            toggleAddSong();
-        }
+        
         return (
             <Overflow>
                 <Wrapper>
@@ -171,7 +174,7 @@ class NewSong extends React.PureComponent {
                                     <Progress progress={this.props.progress}/>
                                     <Cancel onClick={this.handleCancel}><i className={"far fa-times"}/></Cancel>
                                 </> : <>
-                                    <Upload onClick={this.uploadFile}>Upload</Upload>
+                                    <Upload onClick={this.uploadFile}>upload</Upload>
                                     <Cancel onClick={this.handleDeleteFile}><i className={"far fa-times"}/></Cancel>
                                 </>}
 
