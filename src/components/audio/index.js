@@ -73,7 +73,7 @@ class Main extends React.PureComponent {
         this.audio.onloadeddata = () => {
             this.setState({
                 song_duration: this.audio.duration,
-                current_song: index
+                current_song: this.props.songs[index].id
             });
             if (!first) this.handlePlay();
         };
@@ -101,21 +101,22 @@ class Main extends React.PureComponent {
     //  Next song
     nextSong = () => {
         let next_song;
-        if (this.state.current_song + 1 >= this.props.songs.length) {
+        const index = this.props.songs.findIndex(i => i.id === this.state.current_song)
+        if (index + 1 >= this.props.songs.length) {
             next_song = 0;
         } else {
-            next_song = this.state.current_song + 1;
+            next_song = index + 1;
         }
         this.playSong(next_song);
     };
     //  Previous song
     prevSong = () => {
         let prev_song;
-
-        if (this.state.current_song - 1 < 0) {
+        const index = this.props.songs.findIndex(i => i.id === this.state.current_song)
+        if (index - 1 < 0) {
             prev_song = 0
         } else {
-            prev_song = this.state.current_song - 1
+            prev_song = index - 1
         }
         this.playSong(prev_song);
     };
@@ -189,17 +190,17 @@ class Main extends React.PureComponent {
         }
     };
     song_deleted = () => {
-        if (this.audio.played) {
+        if (this.audio.played && this.props.songs.length > 0) {
             this.audio.pause()
             this.audio.src = ""
             this.handleDocumentTitle("Musex Cloud Player")
-            this.setState({removed: true})
+            this.setState({removed: true, current_song: this.props.songs[0].id})
         }
-        if (this.props.songs.length > 0) {
+        else if (this.props.songs.length > 0) {
             console.log("there")
             console.log(this.props.songs)
             this.playSong(0, true)
-            this.setState({currentSong: 0, current_time: 0})
+            this.setState({current_song: this.props.songs[0].id, current_time: 0})
         } else {
             this.audio.src = ""
             this.handleDocumentTitle("Musex Cloud Player")
@@ -218,6 +219,7 @@ class Main extends React.PureComponent {
                     current_song={this.state.current_song}
                     shuffle={this.shuffle}
                     song_deleted={this.song_deleted}
+                    audio={this.audio}
                 />
                 {this.props.songs.length >= 0 && !this.state.removed ? <Player
                     play={this.state.play}

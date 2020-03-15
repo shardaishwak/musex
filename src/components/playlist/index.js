@@ -153,13 +153,12 @@ class Playlist extends React.PureComponent {
     handleRemoveDelete = () => this.setState({deleteSong: null})
     handleDeleteSong = (title, id, artist) => this.setState({deleteSong: {id, title, artist}})
     DELETE_SONG = async () => {
+        this.props.audio.pause()
         this.setState({deleting: true})
-        console.log(this.props.songs)
-
-        console.log(this.state.deleteSong.id)
+        this.props.song_deleted();
         await this.props.DeleteSong(this.state.deleteSong.id)
         this.setState({deleting: false, add_song: false})
-        this.props.song_deleted();
+
         this.handleRemoveDelete()
     }
     render() {
@@ -173,6 +172,7 @@ class Playlist extends React.PureComponent {
             playChoose,
             shuffle,
         } = this.props;
+        const current_song_index = sorted_songs.findIndex(i => i.id === current_song)
         return (
             <>
                 {this.state.add_song ? <NewSong toggleAddSong={this.handleAddSong} /> : null}
@@ -203,7 +203,7 @@ class Playlist extends React.PureComponent {
                             return <Song key={song.id}>
                                 <Left onClick={() =>  playChoose(song.id)}>
                                     <div>
-                                        {current_song !== null && sorted_songs[current_song].id === song.id ? <Icon className="fas fa-waveform" grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]}/> : <Icon className={"fas fa-music"}  grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]}/>}
+                                        {current_song && sorted_songs[current_song_index].id === song.id ? <Icon className="fas fa-waveform" grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]}/> : <Icon className={"fas fa-music"}  grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]}/>}
                                     </div>
                                     <SongTitle>{song.title}</SongTitle>
                                 </Left>

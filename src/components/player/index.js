@@ -19,7 +19,7 @@ import {connect} from "react-redux";
 const Player = props =>  {
 
     const {
-        songs,
+
         play,
         currentSong,
         song_duration,
@@ -41,16 +41,22 @@ const Player = props =>  {
         toggleMute
     } = props;
     const rand = Math.floor(Math.random() * gradients.length);
+    const sorted_songs = props.songs.length > 0 ? props.songs.sort((a,b) => {
+        const title_a = a.title.toLowerCase(), title_b = b.title.toLowerCase();
+        if (title_a < title_b) return -1;
+        else return 1;
+    }) : [];
+    const current_song_index = sorted_songs.findIndex(i => i.id === current_song)
     return(
         <>
-            {props.songs.length > 0 && current_song !== null  ?
+            {sorted_songs.length > 0 && current_song !== null  ?
                 <Wrapper>
                     <Padding>
                         <Left>
                             <Icon className={"fas fa-music"}  grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]} />
                             <Details>
-                                <Title>{convertTitle(songs[current_song].title)}</Title>
-                                <Artist>{convertTitle(songs[current_song].artist)}</Artist>
+                                <Title>{convertTitle(sorted_songs[current_song_index].title)}</Title>
+                                <Artist>{convertTitle(sorted_songs[current_song_index].artist)}</Artist>
                             </Details>
 
                         </Left>
