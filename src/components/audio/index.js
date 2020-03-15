@@ -2,13 +2,7 @@ import React from 'react';
 import styled from 'styled-components'
 import Player from "../player";
 import Playlist from "../playlist";
-import Unsplash from "unsplash-js";
-
-import * as firebase from "firebase";
-
-const unsplash = new Unsplash({
-    accessKey: "WRKuTbvzfVmllgZmlH6lVD4tH6kyowy_kU39ndpjnG8"
-})
+import {connect} from "react-redux";
 
 const Container = styled.div`
     display: flex;
@@ -32,25 +26,12 @@ class Main extends React.PureComponent {
         last_volume: 1,
         mute: false,
 
-        add_new: false,
-        file: "",
-        file_info: {
-            title: "",
-            artist: "unknown",
-            cover: "https://images.unsplash.com/photo-1508726295872-0b87b9999406?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=564&q=80"
-        },
-        error: null,
-        progress: 0,
-        status: null,
-        cancel: false,
-        uploading: false
     };
     audio = new Audio();
     async componentDidMount() {
         //  Add fetched music
-        await this.setState({songs: this.props.songs});
 
-        if (this.state.songs) {
+        if (this.props.songs) {
             this.playSong(0, true);
         }
 
@@ -85,7 +66,7 @@ class Main extends React.PureComponent {
     };
     //  Main for playing music, handles all
     playSong = (index, first) => {
-        const song = this.state.songs[index];
+        const song = this.props.songs[index];
         if (!this.audio.paused) this.audio.pause();
         this.audio.src = song.url;
         this.audio.onloadeddata = () => {
@@ -119,7 +100,7 @@ class Main extends React.PureComponent {
     //  Next song
     nextSong = () => {
         let next_song;
-        if (this.state.current_song + 1 >= this.state.songs.length) {
+        if (this.state.current_song + 1 >= this.props.songs.length) {
             next_song = 0;
         } else {
             next_song = this.state.current_song + 1;
@@ -139,7 +120,7 @@ class Main extends React.PureComponent {
     };
     //  Play from list
     playChoose = (id) => {
-        const index = this.state.songs.findIndex(i => i.id === id);
+        const index = this.props.songs.findIndex(i => i.id === id);
         this.playSong(index)
     };
     //  Forward 10 seconds
@@ -152,7 +133,7 @@ class Main extends React.PureComponent {
     };
     //  Random 1 music to start from
     shuffle = () => {
-        this.playSong(Math.floor(Math.random() * Math.floor(this.state.songs.length)));
+        this.playSong(Math.floor(Math.random() * Math.floor(this.props.songs.length)));
     };
     //  Toggle mute
     toggleMute = () => {
@@ -205,162 +186,18 @@ class Main extends React.PureComponent {
             this.setState({repeat_once: true, repeat: false})
         }
     };
-    toggleAddMusic = () => {
-        this.setState({add_new: !this.state.add_new});
-        this.deleteCurrentFile()
-    }
-    handleFile = e => this.setState({file: e.target.files[0], file_info: {title: e.target.files[0].name, artist: e.target.files[0].name.split("-")[0]}});
-    handleTitle = e => this.setState({file_info: {title: e.target.value, artist: this.state.file_info.artist}});
-    handleArtist = e => this.setState({file_info: {title: this.state.file_info.title, artist: e.target.value}});
-    handleFileSubmit = async e => {
-        const currentUser = firebase.auth().currentUser;
-        const storageRef = firebase.storage().ref();
-        const firestore = firebase.firestore();
-        this.setState({uploading: true, cancel: false, status: "running", process: 0, error: null});
-        const filetype = "." + this.state.file.type.split("/")[1];
-        const filename = this.state.file.name.slice(0, -filetype.length).split("-")[1] || this.state.file.name;
-        const file = this.state.file;
-        const metatdata = {contentType: filetype};
-
-        let image_url;
-        await unsplash.photos.getRandomPhoto().then(res => res.json()).then(json => image_url = json.urls.small)
-
-        const uploadTask = storageRef.child("music/" + filename).put(file, metatdata);
-        uploadTask
-            .on('state_changed', (snapshot) => {
-
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) *100;
-                this.setState({progress});
-                if (this.state.cancel) {
-                    this.setState({status: "cancelled"});
-                    uploadTask.cancel();
-
-                }
-                if (snapshot.state === "running") this.setState({status: "running"})
-            }, (err) => {
-                this.setState({error: err.code});
-            }, () => {
-                uploadTask.snapshot.ref
-                    .getDownloadURL()
-                    .then(downloadURL => {
-                        firestore
-                            .collection("users")
-                            .doc(currentUser.uid)
-                            .get()
-                            .then(doc => {
-                                const lastSongs = doc.data().songs;
-                                const at_song = {
-                                    title: filename,
-                                    full_name: this.state.file.name,
-                                    type: this.state.file.type,
-                                    artist: this.state.file_info.artist,
-                                    url: downloadURL,
-                                    img: image_url,
-                                    id: new Date().valueOf()
-                                };
-                                //  Set ne song to the list, move all to app.js
-                                console.log(at_song);
-                                if (lastSongs) {
-                                    const newSongs = [...lastSongs, at_song];
-                                    firestore
-                                        .collection("users")
-                                        .doc(currentUser.uid)
-                                        .update({songs: newSongs})
-                                        .then(() => {
-                                            this.setState({uploading: false, status: "completed", songs: [...this.state.songs, at_song]});
-                                            setTimeout(() => this.setState({add_new: !this.state.add_new, process: 0, error: null,cancel: false}), 1000)
-                                        })
-                                        .catch(err => console.log(err))
-                                } else {
-                                    firestore
-                                        .collection("users")
-                                        .doc(currentUser.uid)
-                                        .update({songs: [at_song]})
-                                        .then(() => {
-                                            this.setState({uploading: false, status: "completed", songs: [at_song]});
-                                            setTimeout(() => this.setState({add_new: !this.state.add_new, process: 0, error: null,cancel: false}), 700)
-                                        })
-                                        .catch(err => console.log(err))
-                                }
-                            })
-                    })
-            })
-    };
-    handleCancel = () => this.setState({
-        cancel: true,
-        file: "",
-        file_info: {
-            title: "",
-            artist: "unknown",
-            cover: "https://images.unsplash.com/photo-1508726295872-0b87b9999406?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=564&q=80"
-        },
-        error: null,
-        progress: 0,
-        status: null,
-        uploading: false}
-        );
-
-    deleteCurrentFile = () => this.setState({
-        cancel: false,
-        file: "",
-        file_info: {
-            title: "",
-            artist: "unknown",
-            cover: "https://images.unsplash.com/photo-1508726295872-0b87b9999406?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=564&q=80"
-        },
-        error: null,
-        progress: 0,
-        status: null,
-        uploading: false
-    })
-    Logout = async () => {
-        this.audio.pause()
-        await firebase.auth()
-            .signOut()
-            .catch(err =>  this.setState({loading: false, error: err.message}))
-    };
-
-    handleDrop = e => {
-        e.preventDefault();
-        this.setState({file: e.dataTransfer.items[0].getAsFile(), file_info: {title: e.dataTransfer.items[0].getAsFile().name, artist: e.dataTransfer.items[0].getAsFile().name.split("-")[0]}})
-    }
 
     render() {
         console.log("rendering...")
         if (process.env.NODE_ENV === "development") console.log(this.state);
-        const sorted_songs = this.state.songs ? this.state.songs.sort((a,b) => {
-            const title_a = a.title.toLowerCase(), title_b = b.title.toLowerCase();
-            if (title_a < title_b) return -1;
-            else return 1;
-        }) : [];
         return(
             <Container>
                 <Playlist
-                    songs={sorted_songs}
                     playChoose={this.playChoose}
                     current_song={this.state.current_song}
                     shuffle={this.shuffle}
-                    add_new={this.state.add_new}
-                    file={this.state.file}
-                    file_info={this.state.file_info}
-                    error={this.state.error}
-                    progress={this.state.progress}
-                    status={this.state.status}
-                    cancel={this.state.cancel}
-                    uploading={this.state.uploading}
-                    toggleAddMusic={this.toggleAddMusic}
-                    handleFile={this.handleFile}
-                    handleTitle={this.handleTitle}
-                    handleArtist={this.handleArtist}
-                    handleFileSubmit={this.handleFileSubmit}
-                    handleCancel={this.handleCancel}
-                    Logout={this.Logout}
-                    handleDrop={this.handleDrop}
-                    deleteCurrentFile={this.deleteCurrentFile}
                 />
-
                 <Player
-                    songs={sorted_songs}
                     play={this.state.play}
                     song_duration={this.state.song_duration}
                     current_song={this.state.current_song}
@@ -384,5 +221,10 @@ class Main extends React.PureComponent {
         )
     }
 }
+const mapStateToProps = state => {
+    return {
+        songs: state.songs.songs
+    }
+}
 
-export default Main;
+export default connect(mapStateToProps, null)(Main);

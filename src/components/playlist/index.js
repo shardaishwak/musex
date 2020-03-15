@@ -1,9 +1,10 @@
 import React from "react";
 import styled from "styled-components";
-import {Hole, ImageContainer} from "../player/Layout";
 import {connect} from "react-redux";
 import {Logout} from '../../store/actions/authActions'
 import NewSong from "./NewSong";
+import gradients from "../../gradients";
+
 const Container = styled.div`
     padding: 30px 100px;
     overflow-y: scroll;
@@ -58,6 +59,13 @@ const Left = styled.div`
     display: flex;
     align-items: center;
 `
+const Icon = styled.i`
+    margin-right: 25px;
+    font-size: 25px;
+    background: linear-gradient(${props => props.grad_one}, ${props => props.grad_two});
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+`
 const SongTitle = styled.div`
     font-size: 20px;
     font-weight: bold;
@@ -93,7 +101,6 @@ class Playlist extends React.PureComponent {
             current_song,
             playChoose,
             shuffle,
-            toggleAddMusic,
         } = this.props;
         return (
             <>
@@ -109,16 +116,17 @@ class Playlist extends React.PureComponent {
                     </Title>
                     <Songs>
                         {sorted_songs.length > 0 ? sorted_songs.map((song) => {
+                            const rand = Math.floor(Math.random() * gradients.length);
                             return <Song key={song.id} onClick={() =>  playChoose(song.id)}>
                                 <Left>
-                                    <ImageContainer src={song.img}>
-                                        {current_song !== null ? sorted_songs[current_song].id === song.id ? <i style={{color: "#fff", fontSize: "20px"}} className="fas fa-waveform"/> : <Hole /> : <Hole />}
-                                    </ImageContainer>
+                                    <div>
+                                        {current_song !== null && sorted_songs[current_song].id === song.id ? <Icon className="fas fa-waveform" grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]}/> : <Icon className={"fas fa-music"}  grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]}/>}
+                                    </div>
                                     <SongTitle>{song.title}</SongTitle>
                                 </Left>
                                 <SongArtist>{song.artist}</SongArtist>
                             </Song>
-                        }) : <NoSongFound onClick={toggleAddMusic}>Add your first song <i className={"fad fa-plus"}/></NoSongFound>}
+                        }) : <NoSongFound onClick={this.handleAddSong}>Add your first song <i className={"fad fa-plus"}/></NoSongFound>}
 
                     </Songs>
                 </Container>

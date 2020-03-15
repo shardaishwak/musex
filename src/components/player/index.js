@@ -3,7 +3,7 @@ import {
     Artist,
     Controls,
     Details,
-    Hole,
+    Hole, Icon,
     ImageContainer,
     Left, Next,
     Padding, PlayPause, Previous, Rewind,
@@ -13,6 +13,8 @@ import {
     Title, Volume, VolumeIcon,
     Wrapper,
 } from "./Layout";
+import gradients from "../../gradients";
+import {connect} from "react-redux";
 
 const Player = props =>  {
 
@@ -38,15 +40,14 @@ const Player = props =>  {
         volume,
         toggleMute
     } = props;
+    const rand = Math.floor(Math.random() * gradients.length);
     return(
         <>
-            {songs.length > 0 && current_song !== null  ?
+            {props.songs.length > 0 && current_song !== null  ?
                 <Wrapper>
                     <Padding>
                         <Left>
-                            <ImageContainer src={songs[current_song].img}>
-                                <Hole />
-                            </ImageContainer>
+                            <Icon className={"fas fa-music"}  grad_one={gradients[rand].colors[0]}  grad_two={gradients[rand].colors[1]} />
                             <Details>
                                 <Title>{convertTitle(songs[current_song].title)}</Title>
                                 <Artist>{convertTitle(songs[current_song].artist)}</Artist>
@@ -73,8 +74,12 @@ const Player = props =>  {
         </>
     )
 };
-
-export default React.memo(Player);
+const mapStateToProps = state => {
+    return {
+        songs: state.songs.songs
+    }
+}
+export default connect(mapStateToProps, null)(React.memo(Player));
 
 /**
  if ('mediaSession' in navigator) {

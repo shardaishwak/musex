@@ -143,3 +143,13 @@ export const Hole = styled.div`
     border-radius: 50%;
     background: #fff;
 `;
+export const Icon = styled.i`
+    margin-right: 10px;
+    font-size: 30px;
+    background: linear-gradient(${props => props.grad_one}, ${props => props.grad_two});
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    transition: .10s linear;
+`
