@@ -9,16 +9,9 @@ import { Provider } from "react-redux";
 import { compose, createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
 import Reducer from "./store/reducers";
+import { firebaseConfig } from "./config/db_credentials";
 //  firebase
-var firebaseConfig = {
-  apiKey: "api_key",
-  authDomain: "auth_domain",
-  databaseURL: "database_url",
-  projectId: "project_id",
-  storageBucket: "storage_bucket",
-  messagingSenderId: "messaging_sender_id (optional)",
-  appId: "app_id (optional)",
-};
+
 firebase.initializeApp(firebaseConfig);
 
 //  redux
